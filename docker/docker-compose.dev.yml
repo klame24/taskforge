@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: taskforge-api
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_DSN=postgres://postgres:postgres@db:5432/taskforge?sslmode=disable
+      - RABBIT_URL=amqp://guest:guest@rabbit:5672/
+    depends_on:
+      - db
+      - rabbit
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskforge
+    ports:
+      - "5432:5432"
+
+  rabbit:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
