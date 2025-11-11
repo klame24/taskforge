@@ -9,12 +9,17 @@ import (
 )
 
 func main() {
-    cfg := config.Load()
+	cfg := config.Load()
 
-    srv := server.New(cfg)
-    addr := ":" + cfg.HTTPPort
-    log.Printf("TaskForge API starting on %s", addr)
-    if err := http.ListenAndServe(addr, srv.Router()); err != nil {
-        log.Fatalf("server error: %v", err)
-    }
+	srv := server.New(cfg)
+	addr := ":" + cfg.HTTPPort
+	srv.Logger.Info(
+		"Starting TaskForge API",
+		"port", cfg.HTTPPort,
+		"log_level", cfg.LogLevel,
+		"environment", "development")
+
+	if err := http.ListenAndServe(addr, srv.Router()); err != nil {
+		log.Fatalf("server error: %v", err)
+	}
 }
