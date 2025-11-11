@@ -1,16 +1,20 @@
 package main
 
 import (
-    "log"
-    "net/http"
+	"log"
+	"net/http"
 
-    "taskforge/internal/server"
+	"taskforge/internal/config"
+	"taskforge/internal/server"
 )
 
-// some changes from laptop
-
 func main() {
-    srv := server.New()
-    log.Println("TaskForge API starting on :8080")
-    http.ListenAndServe(":8080", srv.Router())
+    cfg := config.Load()
+
+    srv := server.New(cfg)
+    addr := ":" + cfg.HTTPPort
+    log.Printf("TaskForge API starting on %s", addr)
+    if err := http.ListenAndServe(addr, srv.Router()); err != nil {
+        log.Fatalf("server error: %v", err)
+    }
 }

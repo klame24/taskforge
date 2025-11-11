@@ -1,11 +1,18 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+	"taskforge/internal/config"
+)
 
-type Server struct{}
+type Server struct{
+    Config *config.Config
+}
 
-func New() *Server {
-    return &Server{}
+func New(config *config.Config) *Server {
+    return &Server{
+        Config: config,
+    }
 }
 
 func (s *Server) Router() http.Handler {
