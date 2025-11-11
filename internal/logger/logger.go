@@ -36,15 +36,15 @@ func (l *Logger) Debug(msg string, args ...interface{}) {
 }
 
 func (l *Logger) Info(msg string, args ...interface{}) {
-	l.Logger.Debug(msg, args...)
+	l.Logger.Info(msg, args...)
 }
 
 func (l *Logger) Warn(msg string, args ...interface{}) {
-	l.Logger.Debug(msg, args...)
+	l.Logger.Warn(msg, args...)
 }
 
 func (l *Logger) Error(msg string, args ...interface{}) {
-	l.Logger.Debug(msg, args...)
+	l.Logger.Error(msg, args...)
 }
 
 

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"taskforge/internal/config"
 	"taskforge/internal/logger"
+	"taskforge/internal/middleware"
 )
 
 type Server struct {
@@ -22,6 +23,7 @@ func New(config *config.Config) *Server {
 
 func (s *Server) Router() http.Handler {
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		s.Logger.Info("Health check called",
 			"method", r.Method,
@@ -29,11 +31,16 @@ func (s *Server) Router() http.Handler {
 			"user_agent", r.UserAgent())
 		w.Write([]byte("ok"))
 	})
+
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		s.Logger.Info("Ready check called",
 			"method", r.Method,
 			"path", r.URL.Path)
 		w.Write([]byte("ready"))
 	})
-	return mux
+
+    handler := middleware.RecoveryMiddleware(s.Logger)(mux)
+    handler = middleware.LoggerMiddleware(s.Logger)(handler)
+
+	return handler
 }
