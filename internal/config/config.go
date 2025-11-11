@@ -9,7 +9,7 @@ type Config struct {
 	HTTPPort  string
 	DB_DSN    string
 	RabbitURL string
-	LogLevel string
+	LogLevel  string
 }
 
 func Load() *Config {
@@ -17,7 +17,7 @@ func Load() *Config {
 		HTTPPort:  getEnv("HTTP_PORT", "8080"),
 		DB_DSN:    getEnv("DB_DSN", "postgres://postgres:postgres@localhost:5432/taskforge?sslmode=disable"),
 		RabbitURL: getEnv("RABBIT_URL", "amqp://guest:guest@localhost:5672/"),
-		LogLevel: getEnv("LOG_LEVEL", "info"),
+		LogLevel:  getEnv("LOG_LEVEL", "info"),
 	}
 }
 

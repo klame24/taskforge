@@ -20,7 +20,7 @@ func New(config *config.Config, db *sql.DB) *Server {
 	return &Server{
 		Config: config,
 		Logger: log,
-		DB: db,
+		DB:     db,
 	}
 }
 
@@ -32,7 +32,13 @@ func (s *Server) Router() http.Handler {
 			"method", r.Method,
 			"path", r.URL.Path,
 			"user_agent", r.UserAgent())
-		w.Write([]byte("ok\n"))
+		_, err := w.Write([]byte("ok\n"))
+		if err != nil {
+			s.Logger.Info(
+				"Cant get response from server on healthz endpoint",
+				"error", err,
+			)
+		}
 	})
 
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
@@ -44,10 +50,15 @@ func (s *Server) Router() http.Handler {
 		if err != nil {
 			s.Logger.Error("Database is inavailable", "error", err)
 			http.Error(w, "Database is unavailable", http.StatusServiceUnavailable)
-			return 
+			return
 		}
-
-		w.Write([]byte("ready\n"))
+		_, err = w.Write([]byte("ready\n"))
+		if err != nil {
+			s.Logger.Info(
+				"Cant get response from server on readyz endpoint",
+				"error", err,
+			)
+		}
 	})
 
 	handler := middleware.RecoveryMiddleware(s.Logger)(mux)

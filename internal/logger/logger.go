@@ -46,5 +46,3 @@ func (l *Logger) Warn(msg string, args ...interface{}) {
 func (l *Logger) Error(msg string, args ...interface{}) {
 	l.Logger.Error(msg, args...)
 }
-
-

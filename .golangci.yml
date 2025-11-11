@@ -1,0 +1,36 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  disable-all: true
+  enable:
+    # Code style
+    - gofmt
+    - goimports
+    - gocyclo
+    - gosec
+    
+    # Bugs and issues
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - ineffassign
+    
+    # Performance
+    - prealloc
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  gosec:
+    excludes:
+      - G104 # Errors unhandled (we handle them differently)
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck

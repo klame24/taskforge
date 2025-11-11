@@ -29,7 +29,7 @@ func LoggerMiddleware(log *logger.Logger) func(http.Handler) http.Handler {
 				ResponseWriter: w,
 				statusCode:     http.StatusOK,
 			}
-			
+
 			ctx := context.WithValue(r.Context(), requestIDKey{}, requestID)
 			r = r.WithContext(ctx)
 			w.Header().Set("X-Request-ID", requestID)
