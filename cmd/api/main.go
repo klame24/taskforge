@@ -30,11 +30,14 @@ func main() {
 	}
 	defer db.Close()
 
+	taskRepo := repository.NewTaskRepository(db)
 	userRepo := repository.NewUserRepository(db)
+
 	userService := service.NewUserService(userRepo, jwtManager)
 	userHandler := handlers.NewUserHandler(userService)
+	taskHandler := handlers.NewTaskHandler(taskRepo)
 
-	appRouter := router.NewRouter(userHandler, jwtManager)
+	appRouter := router.NewRouter(userHandler, taskHandler, jwtManager)
 	handler := appRouter.SetupRoutes()
 
 	log.Printf("Starting TaskForge API on :%s", cfg.HTTPPort)

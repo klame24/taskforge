@@ -12,14 +12,16 @@ import (
 type Router struct {
 	mux         *http.ServeMux
 	userHandler *handlers.UserHandler
+	taskHandler *handlers.TaskHandler
 	jwtManager  *auth.JWTManager
 }
 
-func NewRouter(userHandler *handlers.UserHandler, jwtManager *auth.JWTManager) *Router {
+func NewRouter(userHandler *handlers.UserHandler, taskHandler *handlers.TaskHandler, jwtManager *auth.JWTManager) *Router {
 	return &Router{
 		mux:         http.NewServeMux(),
 		userHandler: userHandler,
-		jwtManager: jwtManager,
+		taskHandler: taskHandler,
+		jwtManager:  jwtManager,
 	}
 }
 
@@ -52,13 +54,11 @@ func NewRouter(userHandler *handlers.UserHandler, jwtManager *auth.JWTManager) *
 // 	return r.mux
 // }
 
-
-
 func (r *Router) SetupRoutes() *http.ServeMux {
 	// Public routes (доступны без авторизации)
 	r.mux.HandleFunc("POST /api/v1/register", r.userHandler.Register)
 	r.mux.HandleFunc("POST /api/v1/login", r.userHandler.Login)
-	
+
 	// Health check
 	r.mux.HandleFunc("GET /api/v1/health", func(w http.ResponseWriter, r *http.Request) {
 		JSONResponse(w, http.StatusOK, map[string]interface{}{
@@ -67,14 +67,35 @@ func (r *Router) SetupRoutes() *http.ServeMux {
 		})
 	})
 
+	// Protected routes - TASKS
+    r.mux.Handle("GET /api/v1/tasks", r.jwtManager.AuthMiddleware(
+        http.HandlerFunc(r.taskHandler.GetTasks),
+    ))
+    
+    r.mux.Handle("POST /api/v1/tasks", r.jwtManager.AuthMiddleware(
+        http.HandlerFunc(r.taskHandler.CreateTask),
+    ))
+    
+    r.mux.Handle("GET /api/v1/tasks/{id}", r.jwtManager.AuthMiddleware(
+        http.HandlerFunc(r.taskHandler.GetTaskByID),
+    ))
+    
+    r.mux.Handle("PUT /api/v1/tasks/{id}", r.jwtManager.AuthMiddleware(
+        http.HandlerFunc(r.taskHandler.UpdateTask),
+    ))
+    
+    r.mux.Handle("DELETE /api/v1/tasks/{id}", r.jwtManager.AuthMiddleware(
+        http.HandlerFunc(r.taskHandler.DeleteTask),
+    ))
+
 	// Protected routes (требуют авторизации)
 	protected := http.NewServeMux()
-	
+
 	// Пример защищенного маршрута
 	protected.Handle("GET /api/v1/protected", r.jwtManager.AuthMiddleware(
 		http.HandlerFunc(r.protectedHandler),
 	))
-	
+
 	// Подключаем защищенные маршруты к основному роутеру
 	r.mux.Handle("/api/v1/", protected)
 
@@ -84,13 +105,13 @@ func (r *Router) SetupRoutes() *http.ServeMux {
 // Обработчик для защищенного маршрута
 func (r *Router) protectedHandler(w http.ResponseWriter, req *http.Request) {
 	// Получаем user из context'а
-	
+
 	claims, ok := auth.GetUserFromContext(req.Context())
 	if !ok || claims == nil {
 		JSONError(w, http.StatusUnauthorized, "User not found in context")
 		return
 	}
-	
+
 	// Используем данные пользователя
 	JSONResponse(w, http.StatusOK, map[string]interface{}{
 		"success": true,
