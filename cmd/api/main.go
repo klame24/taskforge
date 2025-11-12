@@ -7,7 +7,12 @@ import (
 
 	"taskforge/internal/config"
 	"taskforge/internal/db"
-	"taskforge/internal/server"
+	"taskforge/internal/handlers"
+	"taskforge/internal/repository"
+	"taskforge/internal/router"
+
+	// "taskforge/internal/server"
+	"taskforge/internal/service"
 )
 
 func main() {
@@ -19,19 +24,18 @@ func main() {
 	}
 	defer db.Close()
 
-	srv := server.New(cfg, db)
-	addr := ":" + cfg.HTTPPort
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
 
-	srv.Logger.Info(
-		"Starting TaskForge API",
-		"port", cfg.HTTPPort,
-		"log_level", cfg.LogLevel,
-		"environment", "development")
+	appRouter := router.NewRouter(userHandler)
+	handler := appRouter.SetupRoutes()
 
-	// Простая версия с таймаутами
+	log.Printf("Starting TaskForge API on :%s", cfg.HTTPPort)
+
 	httpServer := &http.Server{
-		Addr:         addr,
-		Handler:      srv.Router(),
+		Addr:         ":" + cfg.HTTPPort,
+		Handler:      handler, //
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
