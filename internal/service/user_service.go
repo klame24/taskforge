@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net/mail"
 	"taskforge/internal/auth"
 	"taskforge/internal/models"
@@ -9,11 +10,13 @@ import (
 
 type UserService struct {
 	userRepo repository.UserRepository
+	jwtManager *auth.JWTManager
 }
 
-func NewUserService(userRepo repository.UserRepository) *UserService {
+func NewUserService(userRepo repository.UserRepository, jwtManager *auth.JWTManager) *UserService {
 	return &UserService{
 		userRepo: userRepo,
+		jwtManager: jwtManager,
 	}
 }
 
@@ -51,15 +54,20 @@ func (s *UserService) Register(firstName, lastName, email, password string) (*mo
 	return user, nil
 }
 
-func (s *UserService) Login(email, password string) (*models.User, error) {
+func (s *UserService) Login(email, password string) (*models.User, string, error) {
 	user, err := s.userRepo.GetByEmail(email)
 	if err != nil {
-		return nil, ErrInvalidCredentials
+		return nil, "", ErrInvalidCredentials
 	}
 
 	if !auth.CheckPasswordHash(password, user.PasswordHash) {
-		return nil, ErrInvalidCredentials
+		return nil, "", ErrInvalidCredentials
 	}
 
-	return user, nil
+	token, err := s.jwtManager.GenerateToken(user.ID, user.Email)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to generate JWT token: %w", err)
+	}
+
+	return user, token, nil
 }

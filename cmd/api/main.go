@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"taskforge/internal/auth"
 	"taskforge/internal/config"
 	"taskforge/internal/db"
 	"taskforge/internal/handlers"
@@ -18,6 +19,11 @@ import (
 func main() {
 	cfg := config.Load()
 
+	jwtManager, err := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTExpiration)
+	if err != nil {
+		log.Fatalf("Failed to create JWT manager: %v", err)
+	}
+
 	db, err := db.ConnectDB(cfg.DB_DSN)
 	if err != nil {
 		log.Fatalf("Database connection failed: %v", err)
@@ -25,7 +31,7 @@ func main() {
 	defer db.Close()
 
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, jwtManager)
 	userHandler := handlers.NewUserHandler(userService)
 
 	appRouter := router.NewRouter(userHandler)

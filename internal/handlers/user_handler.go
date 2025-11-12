@@ -79,11 +79,17 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.Login(req.Email, req.Password)
+	// Теперь Login возвращает три значения: user, token, error
+	user, token, err := h.userService.Login(req.Email, req.Password)
 	if err != nil {
 		JSONError(w, http.StatusUnauthorized, "Invalid credentials")
 		return
 	}
 
-	JSONSuccess(w, http.StatusOK, user)
-}
+	// Возвращаем пользователя и токен
+	JSONSuccess(w, http.StatusOK, map[string]interface{}{
+		"user":  user,
+		"token": token,
+		"message": "Login successful",
+	})
+}	
