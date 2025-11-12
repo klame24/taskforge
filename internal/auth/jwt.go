@@ -55,31 +55,30 @@ func (manager *JWTManager) GenerateToken(userID int, email string) (string, erro
 }
 
 func (manager *JWTManager) VerifyToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		&Claims{},
-		func(t *jwt.Token) (interface{}, error) {
-			_, ok := t.Method.(*jwt.SigningMethodHMAC)
-			if !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-			}
-			return []byte(manager.secretKey), nil
-		},
-	)
+    token, err := jwt.ParseWithClaims(
+        tokenString,
+        &Claims{},
+        func(t *jwt.Token) (interface{}, error) {
+            _, ok := t.Method.(*jwt.SigningMethodHMAC)
+            if !ok {
+                return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+            }
+            return []byte(manager.secretKey), nil
+        },
+    )
 
-	// СНАЧАЛА проверяем валидность токена, ПОТОМ ошибку
-	if !token.Valid {
-		return nil, errors.New("invalid token")
-	}
-	
-	if err != nil {
-		return nil, fmt.Errorf("invalid token: %w", err)
-	}
+    if err != nil {
+        return nil, fmt.Errorf("invalid token: %w", err)
+    }
 
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		return nil, errors.New("invalid token claims")
-	}
+    if !token.Valid {
+        return nil, errors.New("invalid token")
+    }
 
-	return claims, nil
+    claims, ok := token.Claims.(*Claims)
+    if !ok {
+        return nil, errors.New("invalid token claims")
+    }
+
+    return claims, nil
 }
