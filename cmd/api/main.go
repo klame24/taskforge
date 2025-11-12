@@ -34,7 +34,7 @@ func main() {
 	userService := service.NewUserService(userRepo, jwtManager)
 	userHandler := handlers.NewUserHandler(userService)
 
-	appRouter := router.NewRouter(userHandler)
+	appRouter := router.NewRouter(userHandler, jwtManager)
 	handler := appRouter.SetupRoutes()
 
 	log.Printf("Starting TaskForge API on :%s", cfg.HTTPPort)

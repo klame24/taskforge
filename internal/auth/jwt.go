@@ -32,7 +32,7 @@ func NewJWTManager(secretkey string, tokenDuration time.Duration) (*JWTManager, 
 	if len(secretkey) < 32 {
 		return nil, errors.New("JWT secret key must be at least 32 characters long")
 	}
-	
+
 	return &JWTManager{
 		secretKey:     secretkey,
 		tokenDuration: tokenDuration,
@@ -66,12 +66,18 @@ func (manager *JWTManager) VerifyToken(tokenString string) (*Claims, error) {
 			return []byte(manager.secretKey), nil
 		},
 	)
+
+	// СНАЧАЛА проверяем валидность токена, ПОТОМ ошибку
+	if !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+	
 	if err != nil {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
 
 	claims, ok := token.Claims.(*Claims)
-	if !ok || !token.Valid {
+	if !ok {
 		return nil, errors.New("invalid token claims")
 	}
 
