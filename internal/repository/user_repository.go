@@ -8,8 +8,8 @@ import (
 
 type UserRepository interface {
 	Create(user *models.User) error
-	// GetByID(id int) (*models.User, error)
-	// GetByEmail(email string) (*models.User, error)
+	GetByID(id int) (*models.User, error)
+	GetByEmail(email string) (*models.User, error)
 }
 
 type userRepository struct {
@@ -97,13 +97,3 @@ func (r *userRepository) GetByID(id int) (*models.User, error) {
 
 	return &user, nil
 }
-
-// CREATE TABLE users (
-//     id SERIAL PRIMARY KEY,
-//     first_name VARCHAR(255) NOT NULL,
-//     last_name VARCHAR(255) NOT NULL,
-//     email VARCHAR(255) UNIQUE NOT NULL,
-//     password_hash TEXT NOT NULL,
-//     created_at TIMESTAMP,
-//     updated_at TIMESTAMP
-// );
