@@ -61,5 +61,29 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-	// after
+	if r.Method != http.MethodPost {
+		JSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	defer r.Body.Close()
+
+	var req request.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		JSONError(w, http.StatusBadRequest, "Invalid JSON")
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		JSONError(w, http.StatusBadRequest, "Email and Password are required")
+		return
+	}
+
+	user, err := h.userService.Login(req.Email, req.Password)
+	if err != nil {
+		JSONError(w, http.StatusUnauthorized, "Invalid credentials")
+		return
+	}
+
+	JSONSuccess(w, http.StatusOK, user)
 }
